@@ -1,0 +1,4 @@
+[build]
+# Limit parallel compilation jobs to 2 to prevent RAM exhaustion (OOM) and 100% CPU lockups.
+# Adjust to 1 if you have extremely low RAM (e.g., < 4GB).
+jobs = 2
