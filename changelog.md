@@ -8,6 +8,10 @@ All notable changes to the GokChat project will be documented in this file.
 
 ### Added
 - **Initial MVP Release**: Scaffolded and built a complete cross-platform desktop AI chat application using Tauri v2, React 19, Bun, Tailwind CSS v4, and SQLite.
+- **Premium Light Mode (Ash + White + Black)**: Designed a cool, high-fidelity light theme:
+  - Dynamically remapped Tailwind CSS `zinc-*` variables in `index.css` depending on active theme class (`.light` vs `.dark`).
+  - Set the workspace background to cool ash gray, content cards/inputs to pure white, and text blocks to solid black/charcoal.
+  - Automatically loads and initializes theme settings on Tauri application launch.
 - **Claude/ChatGPT UI Redesign**: Redesigned main workspace screens to align with Claude and ChatGPT interface designs:
   - **Collapsible Sidebar**: Added sidebar collapsed state (`w-16` icon-only column) and expanded state (`w-80` full labels + recents list), controlled by settings state and animated transitions.
   - **Claude-style Welcome Home View**: Implemented a home view (`HomeDashboard.tsx`) with a greeting title ("aswin returns!"), a centered prompt input card, and prompt preset quick-pills (Write, Learn, Code, Life stuff).

@@ -159,6 +159,10 @@ export const useSettingsStore = create<SettingsStore>()(
         state.activeProvider = (loadedPrefs.defaultProvider as ProviderType) || "openai";
       });
 
+      // Apply theme to HTML root
+      const loadedTheme = (loadedPrefs.theme || DEFAULT_SETTINGS.theme) as "system" | "light" | "dark";
+      get().setTheme(loadedTheme);
+
       // Try loading models for active provider
       const active = get().activeProvider;
       if (providers[active].hasKey || active === "openai_compatible") {
