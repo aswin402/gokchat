@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSettingsStore } from "../stores/settingsStore";
+import { useChatStore } from "../stores/chatStore";
 import { Dialog, DialogContent, DialogTitle } from "./ui/dialog";
 import { Switch } from "./ui/switch";
 import { Button } from "./ui/button";
@@ -27,6 +28,7 @@ import {
 
 export function SettingsDialog() {
   const settings = useSettingsStore();
+  const chat = useChatStore();
   const [activeTab, setActiveTab] = useState<"general" | "providers" | "instructions" | "appearance">("general");
   const [selectedProvider, setSelectedProvider] = useState<ProviderType>("openai");
   
@@ -311,6 +313,38 @@ export function SettingsDialog() {
                         />
                       </div>
                     </div>
+
+                    {/* Backup & Portability */}
+                    <div className="space-y-3 pt-4 border-t border-zinc-900/60 mt-4 select-none">
+                      <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest select-none">
+                        Backup & Portability
+                      </div>
+                      <div className="flex items-center justify-between py-1.5 gap-4">
+                        <div className="min-w-0">
+                          <span className="text-xs font-semibold text-zinc-300">Data Backups</span>
+                          <p className="text-[10px] text-zinc-555 mt-0.5">Export all conversation history or import from a JSON backup file.</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => chat.exportDbBackup()}
+                            className="bg-zinc-900 border border-zinc-800 text-zinc-300 hover:bg-zinc-850 rounded-xl text-xs px-3 font-semibold transition-all shrink-0 cursor-pointer"
+                          >
+                            Export
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => chat.importDbBackup()}
+                            className="bg-zinc-900 border border-zinc-800 text-zinc-300 hover:bg-zinc-850 rounded-xl text-xs px-3 font-semibold transition-all shrink-0 cursor-pointer"
+                          >
+                            Import
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
                   </div>
                 </div>
               )}

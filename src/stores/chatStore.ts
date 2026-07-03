@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
+import { invoke } from "@tauri-apps/api/core";
 import Database from "@tauri-apps/plugin-sql";
 import { Conversation, Message, ProviderType, ChatMessage } from "../lib/types";
 import { sendChatMessage, stopGeneration as tauriStopGeneration } from "../lib/tauri";
@@ -38,6 +39,8 @@ interface ChatStore {
   exportConversation: (id: string, format: "markdown" | "json") => Promise<string>;
   regenerateResponse: (baseUrl?: string | null) => Promise<void>;
   editAndResendMessage: (messageId: string, newContent: string, baseUrl?: string | null) => Promise<void>;
+  exportDbBackup: () => Promise<void>;
+  importDbBackup: () => Promise<void>;
 
   // --- Stream Event Handlers ---
   handleStreamChunk: (payload: { conversationId: string; text: string; index: number }) => void;
@@ -589,6 +592,66 @@ export const useChatStore = create<ChatStore>()(
           streamingConversationId: null,
           error: `API Invoke error: ${err.message || err}`,
         });
+      }
+    },
+
+    async exportDbBackup() {
+      try {
+        const db = await getDb();
+        const conversationsRows = await db.select<any[]>("SELECT * FROM conversations");
+        const messagesRows = await db.select<any[]>("SELECT * FROM messages");
+        
+        const backupData = {
+          version: 1,
+          conversations: conversationsRows,
+          messages: messagesRows,
+        };
+        
+        const success = await invoke<boolean>("export_backup", {
+          jsonContent: JSON.stringify(backupData, null, 2),
+        });
+        
+        if (success) {
+          alert("Backup exported successfully!");
+        }
+      } catch (err: any) {
+        alert(`Failed to export backup: ${err.message || err}`);
+      }
+    },
+
+    async importDbBackup() {
+      try {
+        const jsonStr = await invoke<string | null>("import_backup");
+        if (!jsonStr) return; // User cancelled
+        
+        const backup = JSON.parse(jsonStr);
+        if (!backup.conversations || !backup.messages) {
+          throw new Error("Invalid backup file structure: missing conversations or messages.");
+        }
+        
+        const db = await getDb();
+        
+        // Use database queries to load rows safely
+        for (const c of backup.conversations) {
+          await db.execute(
+            `INSERT OR IGNORE INTO conversations (id, title, provider, model, system_prompt, created_at, updated_at, pinned, archived)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)`,
+            [c.id, c.title, c.provider, c.model, c.system_prompt, c.created_at, c.updated_at, c.pinned, c.archived]
+          );
+        }
+        
+        for (const m of backup.messages) {
+          await db.execute(
+            `INSERT OR IGNORE INTO messages (id, conversation_id, role, content, tokens_used, model, created_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)`,
+            [m.id, m.conversation_id, m.role, m.content, m.tokens_used, m.model, m.created_at]
+          );
+        }
+        
+        await get().loadConversations();
+        alert("Backup imported successfully! Your database has been synchronized.");
+      } catch (err: any) {
+        alert(`Failed to import backup: ${err.message || err}`);
       }
     },
 

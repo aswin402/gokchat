@@ -11,6 +11,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_store::Builder::default().build())
+        .plugin(tauri_plugin_window_state::Builder::default().build())
         .plugin(
             tauri_plugin_sql::Builder::default()
                 .add_migrations("sqlite:gokchat.db", vec![
@@ -64,6 +65,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::chat::send_message,
             commands::chat::stop_generation,
+            commands::chat::export_backup,
+            commands::chat::import_backup,
             commands::keys::store_api_key,
             commands::keys::get_api_key,
             commands::keys::delete_api_key,

@@ -174,3 +174,38 @@ pub async fn stop_generation(
 ) -> Result<bool, ProviderError> {
     Ok(state.provider_manager.cancel_stream(&conversation_id).await)
 }
+
+#[tauri::command]
+pub async fn export_backup(json_content: String) -> Result<bool, String> {
+    let file_path = rfd::FileDialog::new()
+        .set_title("Export Conversations Backup")
+        .add_filter("JSON Backup", &["json"])
+        .set_file_name("gokchat_backup.json")
+        .save_file();
+
+    match file_path {
+        Some(path) => {
+            std::fs::write(&path, json_content)
+                .map_err(|e| format!("Failed to write backup file: {e}"))?;
+            Ok(true)
+        }
+        None => Ok(false), // User cancelled
+    }
+}
+
+#[tauri::command]
+pub async fn import_backup() -> Result<Option<String>, String> {
+    let file_path = rfd::FileDialog::new()
+        .set_title("Import Conversations Backup")
+        .add_filter("JSON Backup", &["json"])
+        .pick_file();
+
+    match file_path {
+        Some(path) => {
+            let content = std::fs::read_to_string(&path)
+                .map_err(|e| format!("Failed to read backup file: {e}"))?;
+            Ok(Some(content))
+        }
+        None => Ok(None), // User cancelled
+    }
+}
